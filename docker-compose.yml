@@ -15,46 +15,6 @@ services:
     privileged: true
     restart: always
 
-  web:
-    build: ./build/e3server
-    volumes:
-    - ./PPEAM_APP:/app
-    - ./PPEAM_FILES:/app/WebContext/files/uldata
-    ports:
-    - 80:80
-    environment:
-    - TZ=Asia/Shanghai
-    - JAVA_OPTS=-Dfile.encoding=UTF-8
-    links:
-    - db:PPEAM
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/"] # 检查站点是否可用，如果不可用将会自动重启
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  mobile:
-    image: tomcat:8
-    volumes:
-    - ./PPEAM_FILES:/files
-    - ./PPEAM_ANDROID/logs:/usr/local/tomcat/logs
-    - ./PPEAM_ANDROID/webapps:/usr/local/tomcat/webapps
-    ports:
-    - 81:8080
-    environment:
-    - TZ=Asia/Shanghai
-    - JAVA_OPTS=-Dfile.encoding=UTF-8
-    links:
-    - db:PPEAM
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/ist"] # 检查站点是否可用，如果不可用将会自动重启
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      # start_period: 30s
-
   # 健康检查服务
   autoheal:
     image: willfarrell/autoheal
