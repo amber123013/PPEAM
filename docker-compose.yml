@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  db:
+    build: ./build/oracle
+    ports:
+    - '1521:1521'
+    volumes:
+    - ./install:/install
+    - ./scripts:/scripts
+    - ./oracle/app:/opt/oracle/app
+    - ./oracle/dpdump:/opt/oracle/dpdump 
+    privileged: true
+    restart: always
+
+  web:
+    build: ./build/e3server
+    volumes:
+    - ./PPEAM_APP:/app
+    - ./PPEAM_FILES:/files
+    ports:
+    - 80:8080
+    environment:
+    - TZ=Asia/Shanghai
+    - JAVA_OPTS=-Dfile.encoding=UTF-8
+    links:
+    - db:PPEAM
+    restart: always
+
+  mobile:
+    image: tomcat:8
+    volumes:
+    - ./PPEAM_FILES:/files
+    - ./PPEAM_ANDROID/logs:/usr/local/tomcat/logs
+    - ./PPEAM_ANDROID/webapps:/usr/local/tomcat/webapps
+    ports:
+    - 81:8080
+    environment:
+    - TZ=Asia/Shanghai
+    - JAVA_OPTS=-Dfile.encoding=UTF-8
+    links:
+    - db:PPEAM
+    restart: always
