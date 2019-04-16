@@ -5,6 +5,8 @@ services:
     build: ./build/oracle
     ports:
     - '1521:1521'
+    environment:
+    - TZ=Asia/Shanghai
     volumes:
     - ./install:/install
     - ./scripts:/scripts
@@ -17,15 +19,20 @@ services:
     build: ./build/e3server
     volumes:
     - ./PPEAM_APP:/app
-    - ./PPEAM_FILES:/files
+    - ./PPEAM_FILES:/app/WebContext/files/uldata
     ports:
-    - 80:8080
+    - 80:80
     environment:
     - TZ=Asia/Shanghai
     - JAVA_OPTS=-Dfile.encoding=UTF-8
     links:
     - db:PPEAM
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"] # 检查站点是否可用，如果不可用将会自动重启
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   mobile:
     image: tomcat:8
@@ -41,3 +48,18 @@ services:
     links:
     - db:PPEAM
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ist"] # 检查站点是否可用，如果不可用将会自动重启
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # start_period: 30s
+
+  # 健康检查服务
+  autoheal:
+    image: willfarrell/autoheal
+    restart: always
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    environment: 
+    - AUTOHEAL_CONTAINER_LABEL=all
